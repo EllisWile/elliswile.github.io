@@ -1,1 +1,28 @@
-<h1> hello, world!</h1>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ellis Wile - Technical Game Designer</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Ellis Wile</h1>
+            <p>Technical Game Designer | Toronto, ON</p>
+            <p><a href="https://ellisw.itch.io/">Itch.io</a></p>
+        </header>
+
+        <main>
+            <h2>Case Study: 3D Horde Shooter (Godot)</h2>
+            <p><strong>The Problem:</strong> I needed 60+ enemies on screen at a time with their own collisions and pathing without tanking Godot's performance.</p>
+            
+            <!-- Replace this src with your actual GIF name once it is in the assets folder -->
+            <!-- <img src="assets/pooling-demo.gif" alt="GIF showing 50 enemies pathfinding efficiently" class="portfolio-gif"> -->
+
+            <p><strong>The Solution:</strong> I built a tiny, lightweight boid-style system, where the game world is divided into smaller cells. Each enemy checks which cell it's in and if there are any other enemies inside that cell. If there are, the enemies slightly 'push' them away without any actual collisions calculating, ensuring great performance with fully 3D modeled and animated characters.</p>
+        </main>
+    </div>
+</body>
+</html>
