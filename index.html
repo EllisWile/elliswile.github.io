@@ -17,28 +17,50 @@
         <main>
             <h2>Case Study: <a href="https://store.steampowered.com/app/3920990/Blood_Welkin/">BLOOD WELKIN</a> (Godot)</h2>
             <p><strong>The Problem:</strong> The enemy horde needed to feel like a horde, not just 15-20 entities on screen at any given time. I needed 65+ enemies on screen with their own collisions without tanking Godot’s performance.</p>
-            
-            <!-- Replace this src with your actual GIF name once it is in the assets folder -->
-            <!-- <img src="assets/pooling-demo.gif" alt="GIF showing 50 enemies pathfinding efficiently" class="portfolio-gif"> -->
 
-            <p><strong>The Solution:</strong> I'm breaking this section up into two sub-categories. Uppercase 'O' Optimization: big changes that have an immediate effect on gameplay, and lowercase optimization: small changes that, alone, are small, but with many of them running results in meaningful changes.</p>
+            <p><strong>The Solution:</strong> I'm breaking this section up into two sub-categories. Uppercase 'O' Optimization: big changes that have an immediate effect on gameplay, and lowercase optimization: small changes that, alone, are small, but with many of them running results in meaningful changes. Read about them below:</p>
 			<br>
 			<h3>Capital O Optimization: </h3>
 			<p><strong>1- Boids: </strong> I reworked a popular boid-style collision system to work on a smaller, lighter scale. I have the in-game world divided into a grid of small square “cells.” Each enemy assigns itself to the cell it is inside, and only calculates its separation collisions with up to 3 other enemies inside the same cell. That way I can have a large number of enemies on screen at once, but the number of collision detections is incredibly minor compared to the entity count.</p>
+			<figure>
+			<img src="assets/multithread_2.png" alt="Code snippet of the boid calculation.">
+			<figcaption>My lightweight boid function. The enemy calculates its cell and a 3x3 square of cells around it. It checks the cell for others (minus itself) and if other enemies are within a 1.5 meter radius, gently push them away. If there are more than 3 close enemies, stop calculating.</figcaption>
+			</figure>
 			<br>
 			<p><strong>2- Multithreading:</strong>  I multithread the separation calculations, so the main thread can run all the other in-game logic, while I use the other thread to only calculate enemy separation collisions and velocity.</p>
+			<figure>
+			<img src="assets/multithread_1.png" alt="Code snippet of assigning a the calculate separation task to another thread.">
+			<figcaption>Assigning a new task that calculates enemy separation (_calculate_boids, the function explained above) to a different thread than the main thread.</figcaption>
+			</figure>
 			<br>
-			<h3>optimization: </h3>
-			<br>
+			<h3>Small o optimization: </h3>
 			<p><strong>1- Aggressive Layer Masking: </strong> Since there are a lot of entities running at once, I needed to reduce the amount of String comprising as possible. An in-game money drop needs to detect collision so it knows if the player picked it up, but if it's on the same collision layer as enemies, it will be making String comparison checks every time an enemy enters its collision. Times that by the amount of money drops and enemies on screen, and that amounts to an overwhelming amount of slow, String checks.</p>
+			<figure>
+			<img src="assets/enemy_layer_2.png" alt="Image showing the changing of the enemy scene's layers/masks in code depending on what the enemy spawned as.">
+			<figcaption>Reassigning layers/masks in code depending on the type of enemy spawned. Enemies are pooled and level-up over time, so changing each scene's layers/masks on the fly is a must.</figcaption>
+			</figure>
 			<br>
-			<p><strong>2- Utlizing Godot's OnScreenEnabler Node: </strong> With this node, I was able to stop enemy animations when they were not in direct view of the main camera.</p>
+			<p><strong>2- Object Pooling:</strong> This is increadibly useful for optimization since during gameplay, there are many scenes/nodes appearing and disappearing rapidly. With pooling, I don't need to constantly instantiate and destroy them. Godot claims it doesn't have trash collection, but I found BLOOD WELKIN runs better when scenes and particles are pre-warmed and reused. I use a similar yet more advanced technique with enemies, explained in section 6.</p>
+			<figure>
+			<img src="assets/pooling.png" alt="Snippet of code with an in-game example of pooling bullets.">
+			<figcaption>Iterating through every bullet loaded into memory and checking if it's currently being fired. If every bullet pooled is active, create another bullet and add it to the pool.</figcaption>
+			</figure>
 			<br>
-			<p><strong>3- Object Pooling:</strong> This is increadibly useful for optimization since during gameplay, there are many scenes/nodes appearing and disappearing rapidly. With pooling, I don't need to constantly instantiate and destroy them. Godot claims it doesn't have trash collection, but I found BLOOD WELKIN runs better when scenes and particles are pre-warmed and reused.</p>
+			<p><strong>3- Linear Pathfinding:</strong> While using a navmesh system would make the enemies feel smarter, it comes at a cost of performance. Enemies will only partially pathfind in BLOOD WELKIN. Each one has a "wall feeler" that will detect a wall in front of it and attempt to walk around it (explained in section 5). This does mean they will sometimes get stuck on world geometry. However, the main gameplay loop is killing enemies, so enemies seldom survive long enough to get stuck.</p>
 			<br>
-			<p><strong>4- Linear Pathfinding:</strong> While using a navmesh system would make the enemies feel smarter, it comes at a cost of performance. Enemies will not pathfind in BLOOD WELKIN, rather, they just walk in the direction of the player at all times. This does mean they will get stuck on world geometry, however, the main gameplay loop is killing enemies and if the player is not doing that, the game will not last long.</p>
+			<p><strong>4- Pre-baking and Simplifying Animations:</strong> I used mixamo for enemy animations, but those come with a lot of keyframes, smoothing, etc. which can be a burden on the game's performance. I circumvented that by reducing animation keyframes and smoothing as well as pre-baking animations. While this results in the animations looking choppy (i.e less smooth), I believe that is a good compromise, as choppy animations lends itself to the game's overall aesthetic.</p>
+			<img src="assets/anim_gif.gif" title="GIF showing enemy animations. Removing decimal points on position and rotation axies reduces load and adds the choppy-ness">
 			<br>
-			<p><strong>5- Pre-baking and Simplifying Animations:</strong> I used mixamo for enemy animations, but those come with a lot of keyframes, smoothing, etc. which can be a burden on the game's performance. I circumvented that by reducing animation keyframes and smoothing as well as pre-baking animations. While this results in the animations looking choppy (i.e less smooth), I believe that is a good compromise, as choppy animations lends itself to the games overall aesthetic.</p>
+			<p><strong>5- Reducing Checks:</strong>  I run enemy checks every 30 frames. This takes tons of weight off the CPU with minimal effect on player perception and gameplay.</p>
+			<figure>
+			<img src="assets/check_2.png" alt="Code snippet of the code that only runs every (x) amount of frames.">
+			<figcaption>Every frame the _update_timer variable reduces by 1. Once it's less than or equal to 0, re-assign itself the number of the _update_freq (in this case, 30). So every 30 frames the game runs the following logic: If I am moving and I'm not a ghost enemy: Look in the direction I'm walking. If I am touching a wall, slightly change my trajectory. After that, set my speed and walk towards what I am looking at.</figcaption>
+			</figure>
+			<br>
+			<p><strong>6- Pooling and Reusing Enemies:</strong> Since the player is constantly killing enemies, enemies need to be constantly coming at the player. I knew from the start I wanted BLOOD WELKIN to be a “survivors” type game and those games don’t have set waves, rather an endless horde constantly accosts the player. To achieve this, I have a timer on the main GameManager Node which counts down to 0, when it reaches 0 it adds more enemies to the pool. When an enemy is killed, it instantly teleports to one of the many spawn points outside the world bounds and begins walking again. Every time the player kills a boss, it signals to every enemy that upon their next revive, to “level-up.” This makes the enemies harder to kill and faster by a slight margin, and it also adds a small chance for the enemy’s 3D model to distort. Enemies also have a chance to spawn as a ghost upon every revive. They do not need to walk around buildings as they can just coax their way through them and they take less damage unless the player buys a special item in the shop.</p>
+			<figure>
+			<img src="assets/revive.jpg" alt="2 code snippets of the code controlling enemy revives and level-ups">
+			<figcaption><strong>fig.1:</strong> Level-Up function. Finding the target level that this enemy levels-up to, removing the old model and checking to see if it will revive as a ghost enemy. <strong>fig.2:</strong> the revive function. Stopping processes to save memory, essentially "removing" the enemy without actually removing it from the game/memory. Wiping it's slate and re-rolling random numbers before levelling-up, becoming visible and entering the game again.<figcaption>
         </main>
     </div>
 </body>
