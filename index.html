@@ -16,12 +16,29 @@
 
         <main>
             <h2>Case Study: BLOOD WELKIN (Godot)</h2>
-            <p><strong>The Problem:</strong> I needed 60+ enemies on screen at a time with their own collisions and pathing without tanking Godot's performance.</p>
+            <p><strong>The Problem:</strong> The enemy horde needed to feel like a horde, not just 15-20 entities on screen at any given time. I needed 65+ enemies on screen with their own collisions without tanking Godot’s performance.</p>
             
             <!-- Replace this src with your actual GIF name once it is in the assets folder -->
             <!-- <img src="assets/pooling-demo.gif" alt="GIF showing 50 enemies pathfinding efficiently" class="portfolio-gif"> -->
 
-            <p><strong>The Solution:</strong> I built a tiny, lightweight boid-style system, where the game world is divided into smaller cells. Each enemy checks which cell it's in and if there are any other enemies inside that cell. If there are, the enemies slightly 'push' them away without any actual collisions calculating, ensuring great performance with fully 3D modeled and animated characters.</p>
+            <p><strong>The Solution:</strong> I'm breaking this section up into two sub-categories. Uppercase 'O' Optimization: big changes that have an immediate effect on gameplay, and lowercase optimization: small changes that, alone, are small, but with many of them running results in meaningful changes.</p>
+			<br>
+			<h3>Capital O Optimization: </h3>
+			<p><strong>1- Boids: </strong> I reworked a popular boid-style collision system to work on a smaller, lighter scale. I have the in-game world divided into a grid of small square “cells.” Each enemy assigns itself to the cell it is inside, and only calculates its separation collisions with up to 3 other enemies inside the same cell. That way I can have a large number of enemies on screen at once, but the number of collision detections is incredibly minor compared to the entity count.</p>
+			<br>
+			<p><strong>2- Multithreading:</strong>  I multithread the separation calculations, so the main thread can run all the other in-game logic, while I use the other thread to only calculate enemy separation collisions and velocity.</p>
+			<br>
+			<h3>optimization: </h3>
+			<br>
+			<p><strong>1- Aggressive Layer Masking: </strong> Since there are a lot of entities running at once, I needed to reduce the amount of String comprising as possible. An in-game money drop needs to detect collision so it knows if the player picked it up, but if it's on the same collision layer as enemies, it will be making String comparison checks every time an enemy enters its collision. Times that by the amount of money drops and enemies on screen, and that amounts to an overwhelming amount of slow, String checks.</p>
+			<br>
+			<p><strong>2- Utlizing Godot's OnScreenEnabler Node: </strong> With this node, I was able to stop enemy animations when they were not in direct view of the main camera.</p>
+			<br>
+			<p><strong>3- Object Pooling:</strong> This is increadibly useful for optimization since during gameplay, there are many scenes/nodes appearing and disappearing rapidly. With pooling, I don't need to constantly instantiate and destroy them. Godot claims it doesn't have trash collection, but I found BLOOD WELKIN runs better when scenes and particles are pre-warmed and reused.</p>
+			<br>
+			<p><strong>4- Linear Pathfinding:</strong> While using a navmesh system would make the enemies feel smarter, it comes at a cost of performance. Enemies will not pathfind in BLOOD WELKIN, rather, they just walk in the direction of the player at all times. This does mean they will get stuck on world geometry, however, the main gameplay loop is killing enemies and if the player is not doing that, the game will not last long.</p>
+			<br>
+			<p><strong>5- Pre-baking and Simplifying Animations:</strong> I used mixamo for enemy animations, but those come with a lot of keyframes, smoothing, etc. which can be a burden on the game's performance. I circumvented that by reducing animation keyframes and smoothing as well as pre-baking animations. While this results in the animations looking choppy (i.e less smooth), I believe that is a good compromise, as choppy animations lends itself to the games overall aesthetic.</p>
         </main>
     </div>
 </body>
