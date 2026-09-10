@@ -50,7 +50,10 @@
 			<p><strong>3- Linear Pathfinding:</strong> While using a navmesh system would make the enemies feel smarter, it comes at a cost of performance. Enemies will only partially pathfind in BLOOD WELKIN. Each one has a "wall feeler" that will detect a wall in front of it and attempt to walk around it (explained in section 5). This does mean they will sometimes get stuck on world geometry. However, the main gameplay loop is killing enemies, so enemies seldom survive long enough to get stuck.</p>
 			<br>
 			<p><strong>4- Pre-baking and Simplifying Animations:</strong> I used mixamo for enemy animations, but those come with a lot of keyframes, smoothing, etc. which can be a burden on the game's performance. I circumvented that by reducing animation keyframes and smoothing as well as pre-baking animations. While this results in the animations looking choppy (i.e less smooth), I believe that is a good compromise, as choppy animations lends itself to the game's overall aesthetic.</p>
-			<img src="assets/anim_gif.gif" title="GIF showing enemy animations. Removing decimal points on position and rotation axies reduces load and adds the choppy-ness">
+			<figure>
+				<img src="assets/anim_gif.gif" title="GIF showing enemy animations. Removing decimal points on position and rotation axies reduces load and adds the choppy-ness">
+				<figcaption>See the choppy way the legs and arms move, especially during the 'walk' animation? This is on purpose. To the right of the animation keyframes (the white upside down U shaped icons), you can see I use 'nearest' interpolation to reduce the amount of tiny movements in the animation. </figcaption>
+			</figure>
 			<br>
 			<p><strong>5- Reducing Checks:</strong>  I run enemy checks every 30 frames. This takes tons of weight off the CPU with minimal effect on player perception and gameplay.</p>
 			<figure>
