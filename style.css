@@ -79,7 +79,6 @@ header p {
     margin: 4px 0;
 }
 
-/* --- Standalone Images (Like your Battle GIF) --- */
 img {
     max-width: 100%;
     height: auto;
@@ -89,7 +88,6 @@ img {
     margin: 24px 0;
 }
 
-/* --- Figure & Code Blocks (The 'Documentation' Look) --- */
 figure {
     background-color: var(--card-bg);
     border: 1px solid var(--border-color);
@@ -120,7 +118,6 @@ figcaption strong {
     color: var(--text-primary);
 }
 
-/* --- Inline Code (For future use) --- */
 code {
     background-color: var(--code-bg);
     color: #5a92c3;
